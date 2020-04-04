@@ -6,26 +6,13 @@ import search.util as util
 def main():
     with open(sys.argv[1]) as file:
         data = json.load(file)
+
+        # Store white and black pieces in the form of dictionary
         board_dict = {}
-        for nxy in data["white"]:
-            n = nxy[0]
-            x = nxy[1]
-            y = nxy[2]
-            board_dict[(x,y)] = "{} W".format(n)
+        store(board_dict, data)
 
-        for nxy in data["black"]:
-            n = nxy[0]
-            x = nxy[1]
-            y = nxy[2]
-            board_dict[(x,y)] = "{} B".format(n)
-
-    file.close()
-    util.print_board(board_dict, "", False, True)
-
-
-    # TODO: find and print winning action sequence
+    file.close()    
     
-    # Store white and black pieces in the form of dictionary
 
     # If only one white piece then 
 
@@ -51,12 +38,25 @@ def main():
 
 
 # Store function
-
+def store(board_dict, data):
+    
     # For every piece in json file, we append into empty board_dict
     # board_dict[(x,y)] = "n c" where n is number of pieces (maybe in stack) and c is colour (B or W) 
 
-    # print to check if stored correctly
+    for nxy in data["white"]:
+        n = nxy[0]
+        x = nxy[1]
+        y = nxy[2]
+        board_dict[(x,y)] = "{} W".format(n)
 
+    for nxy in data["black"]:
+        n = nxy[0]
+        x = nxy[1]
+        y = nxy[2]
+        board_dict[(x,y)] = "{} B".format(n)
+
+    # print to check if stored correctly
+    util.print_board(board_dict, "", False, True)
     
 # Move function
     # Gets the number of pieces in the stack 
