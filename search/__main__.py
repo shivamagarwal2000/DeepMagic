@@ -1,10 +1,26 @@
 import sys
 import json
+import search.util as util
 
 
 def main():
     with open(sys.argv[1]) as file:
         data = json.load(file)
+        board_dict = {}
+        for nxy in data["white"]:
+            n = nxy[0]
+            x = nxy[1]
+            y = nxy[2]
+            board_dict[(x,y)] = "{} W".format(n)
+
+        for nxy in data["black"]:
+            n = nxy[0]
+            x = nxy[1]
+            y = nxy[2]
+            board_dict[(x,y)] = "{} B".format(n)
+
+    file.close()
+    util.print_board(board_dict, "", False, True)
 
 
     # TODO: find and print winning action sequence
