@@ -58,8 +58,8 @@ def main():
 
 # takes the state and coordinate of the moving tile, direction of movement, and the no of steps
 # return the state after update
-# Warning - some moves might be invalid so return some flag value
-def move(state, x, y, dir, no_steps)
+# Warning - some moves might be invalid so return some flag value like None
+def move(state, x, y, dir, no_steps):
 
 
 # Boom function
@@ -92,9 +92,69 @@ def heuristic(state):
     return total_dis
 
 
-def a_star_search(board_dict):
+
+class Node():
+    """A node class for A* Pathfinding"""
+
+    def __init__(self, parent=None, state=None):
+        self.parent = parent
+        self.state = state
+
+        self.g = 0
+        self.h = 0
+        self.f = 0
+
+    def __eq__(self, other):
+        return self.state == other.state
 
 
+
+
+def a_star_search(state):
+
+    # initialise the starting node
+    start_node = Node(None, state)
+    start_node.g = 0
+    start_node.h = heuristic(state)
+    start_node.f = start_node.h
+
+    # Initialize both open and closed list
+    open_list = []
+    closed_list = []
+
+    # Add the start node
+    open_list.append(start_node)
+
+    while len(open_list) > 0:
+        # Get the current node
+        current_node = open_list[0]
+        current_index = 0
+
+        for index, item in enumerate(open_list):
+            if item.f < current_node.f:
+                current_node = item
+                current_index = index
+
+        # Pop current off open list, add to closed list
+        open_list.pop(current_index)
+        closed_list.append(current_node)
+
+        # if the current node has no black piece it is a goal node hence return
+        for nxy in current_node.state["black"]:
+            if len(nxy) == 0:
+                path = []
+                current = current_node
+                while current is not None:
+                    path.append(current.state)
+                    current = current.parent
+                return path[::-1]  # Return reversed path
+
+            else:
+                break
+
+        # Generate children
+        children = []
+        
 
 
 
