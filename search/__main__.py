@@ -58,15 +58,16 @@ def main():
 
 # takes the state and coordinate of the moving tile, direction of movement, and the no of steps
 # return the state after update
+# also keep in mind the stacking part
 # Warning - some moves might be invalid so return some flag value like None
 def move(state, x, y, dir, no_steps):
-
+    return state
 
 # Boom function
 # Deletes the exploded pieces from board_dict
 # takes a state and the location of the blast and returns the updated state
 def boom(state, x, y):
-
+    return state
 
 # search the optimal tiles/tile where the white pieces/piece should move to
 # modelling the problem - States - white and black pieces along with their location
@@ -154,7 +155,55 @@ def a_star_search(state):
 
         # Generate children
         children = []
-        
+
+        # Generating children by moving
+        dirs = ['N', 'S', 'E', 'W']
+        for nxy in current_node.state["white"]:
+            n = nxy[0]
+            x = nxy[1]
+            y = nxy[2]
+            for i in list(range(1, n+1)):
+                for s in dirs:
+                    temp = move(current_node.state, x, y, s, i)
+                    new_node = Node(current_node, temp)
+                    children.append(new_node)
+
+
+        # Generating children by blasting
+        for nxy in current_node.state["white"]:
+            x = nxy[1]
+            y = nxy[2]
+            temp = boom(current_node.state, x, y)
+            new_node = Node(current_node, temp)
+            children.append(new_node)
+
+
+        # Loop through children
+        for child in children:
+            flag = 0
+            # Child is on the closed list
+            for closed_child in closed_list:
+                if child == closed_child:
+                    flag = 1
+                    break
+                else:
+                    # Create the f, g, and h values
+                    child.g = current_node.g + 1
+                    child.h = heuristic(child.state)
+                    child.f = child.g + child.h
+
+            if flag == 1:
+                continue
+
+            # Child is already in the open list
+            for open_node in open_list:
+                # check if the new path to children is worst or equal
+                # than one already in the open_list (by measuring g)
+                if child == open_node and child.g >= open_node.g:
+                    break
+                else:
+                    # Add the child to the open list
+                    open_list.append(child)
 
 
 
