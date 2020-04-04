@@ -55,15 +55,17 @@ def main():
 # print to check if stored correctly
 
 
-# Move function
-# Gets the number of pieces in the stack
-# Guard to make sure can only move within the grid
-# Prioritise moving as many steps as possible
+
+# takes the state and coordinate of the moving tile, direction of movement, and the no of steps
+# return the state after update
+# Warning - some moves might be invalid so return some flag value
+def move(state, x, y, dir, no_steps)
+
 
 # Boom function
 # Deletes the exploded pieces from board_dict
-
-# Plan move function
+# takes a state and the location of the blast and returns the updated state
+def boom(state, x, y):
 
 
 # search the optimal tiles/tile where the white pieces/piece should move to
@@ -93,7 +95,8 @@ def heuristic(state):
 def a_star_search(board_dict):
 
 
-# Plan boom function
+
+
 
 if __name__ == '__main__':
     main()
