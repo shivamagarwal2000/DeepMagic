@@ -59,7 +59,56 @@ def main():
 # return the state after update
 # also keep in mind the stacking part
 # Warning - some moves might be invalid so return some flag value like None
-def move(state, x, y, dir, no_steps):
+def move(state, n, x, y, dir, no_steps):
+    # Check if move will still be on the board
+    new_x = x
+    new_y = y
+
+    if dir == 'N':
+        new_y += no_steps
+
+    elif dir == 'S':
+        new_y -= no_steps
+
+    elif dir == 'E':
+        new_x += no_steps
+
+    else:
+        new_x -= no_steps
+
+    if new_x not in range(8) and new_y not in range(8):
+        return None
+
+    # Remove the n pieces from the original tile
+    old_n = int(state[(x, y)][0])
+
+    # If moving less than a full stack
+    if old_n > n:
+        old_n -= n
+        state[(x, y)] = "{} W".format(old_n)
+
+    # If moving full stack
+    else:
+        del state[(x, y)]
+
+    # Place n pieces at destination
+    new_n = n
+
+    # If there are already pieces on the destination tile
+    if (new_x, new_y) in state:
+
+        # If piece at destination is white then just make/add to stack
+        c = state[(new_x, new_y)][2]
+
+        if c == "W":
+            new_n += int(state[(new_x, new_y)][0])
+
+        # If piece at destination is black then is an invalid move
+        else:
+            return None
+
+    # Store and return the new state with the moved tiles
+    state[(new_x, new_y)] = "{} W".format(new_n)
     return state
 
 
@@ -67,6 +116,16 @@ def move(state, x, y, dir, no_steps):
 # Deletes the exploded pieces from board_dict
 # takes a state and the location of the blast and returns the updated state
 def boom(state, x, y):
+    # Remove all pieces at location
+    if (x, y) in state:
+        del state[(x, y)]
+
+    # Check for surrounding tiles if any other pieces caught in explosion
+    for surrounding_x in range(x - 1, x + 2):
+        for surrounding_y in range(y - 1, y + 2):
+            if (surrounding_x, surrounding_y) in state:
+                state = boom(state, surrounding_x, surrounding_y)
+
     return state
 
 
@@ -94,7 +153,6 @@ def heuristic(state):
             total_dis += (abs(x - p) + abs(y - q))
 
     return total_dis * white_freq
-
 
 
 class Move():
