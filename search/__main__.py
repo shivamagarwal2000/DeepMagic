@@ -11,35 +11,23 @@ def main():
         state = {}
         state = store(data)
 
-        
-
-    
-
-    # If only one white piece then 
-    
-            # Use A* algorithm to 
-            
-
-        # If only one black piece then just have destination tile be any surrounding tile closest to white piece
-
-        # If more than one black piece then
-        # Iterate through black pieces, checking surrounding tiles of each
-        # If none then check tiles in 5x5 box around
-        # If got another black piece then place white piece in middle of the two
-        # Plan boom at that tile
-        # If will remove all black pieces then make white piece destination be that tile
-        # Find shortest path from white piece to that tile
-        
-    # If more than one piece then
-        # Do the same for the above where more than one black piece
-        # If nothing in the 5x5 box, then prioritise this and just move ONE white piece there (preferably white piece closest to black piece)
-
-
-        # White piece is trapped if all paths are blocked
-            # If trapped try to make stack with pieces trapped and try to find path again
-            # Once not trapped, destack and only move one piece to boom
-            
     file.close()
+
+    # Use A* algorithm to find optimal path
+    # Have it return a path (list of tuple with (action_type, n, source_x, source_y, dest_x, dest_y))
+
+    path = []
+    path = a_star_search(data) 
+
+    # Print the actions
+
+    for action in path:
+        if action[1] == "move":
+            print_move(action[2],action[3],action[4],action[5],action[6])
+
+        else: 
+            print_boom(action[2],action[3],action[4])
+            
     util.print_board(state)
 
 # Store function
@@ -71,8 +59,6 @@ def store(data):
 # also keep in mind the stacking part
 # Warning - some moves might be invalid so return some flag value like None
 
-# Need to know number of pieces to move
-# If invalid, return None or original state?
 def move(state, n, x, y, dir, no_steps):
 
     # Check if move will still be on the board
@@ -142,11 +128,6 @@ def boom(state, x, y):
                 state = boom(state, surrounding_x,surrounding_y)
     
     return state 
-
-
-# Plan move function
-
-# Plan boom function
 
 # search the optimal tiles/tile where the white pieces/piece should move to
 # modelling the problem - States - white and black pieces along with their location
