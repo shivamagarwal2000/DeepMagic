@@ -1,5 +1,7 @@
 import sys
 import json
+from typing import TextIO
+
 import search.util as util
 
 
@@ -18,41 +20,16 @@ def main():
             x = nxy[1]
             y = nxy[2]
             board_dict[(x, y)] = "{} B".format(n)
+    path = a_star_search(data)
+    # print the actions using util.py functions
+    for opt in path:
+        if opt.name == "Move":
+            util.print_move(opt.n, opt.x_a, opt.y_a, opt.x_b, opt.y_b)
+        else:
+            util.print_boom(opt.x, opt.y)
 
     file.close()
     util.print_board(board_dict, "", False, True)
-
-    # TODO: find and print winning action sequence
-
-    # Store white and black pieces in the form of dictionary
-
-    # If only one white piece then 
-
-    # If only one black piece then just have destination tile be any surrounding tile closest to white piece
-
-    # If more than one black piece then
-    # Iterate through black pieces, checking surrounding tiles of each
-    # If none then check tiles in 5x5 box around
-    # If got another black piece then place white piece in middle of the two
-    # Plan boom at that tile
-    # If will remove all black pieces then make white piece destination be that tile
-    # Find shortest path from white piece to that tile
-
-    # If more than one piece then
-    # Do the same for the above where more than one black piece
-    # If nothing in the 5x5 box, then prioritise this and just move ONE white piece there (preferably white piece closest to black piece)
-
-    # White piece is trapped if all paths are blocked
-    # If trapped try to make stack with pieces trapped and try to find path again
-    # Once not trapped, destack and only move one piece to boom
-
-
-# Store function
-
-# For every piece in json file, we append into empty board_dict
-# board_dict[(x,y)] = "n c" where n is number of pieces (maybe in stack) and c is colour (B or W)
-
-# print to check if stored correctly
 
 
 # takes the state and coordinate of the moving tile, direction of movement, and the no of steps
@@ -165,6 +142,7 @@ class Move():
         self.y_a = y_a
         self.y_b = y_b
         self.name = "Move"
+
 
 # class holds all the variables needed to define a unique boom
 class Boom():
