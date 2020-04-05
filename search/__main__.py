@@ -111,7 +111,7 @@ def move(state, n, x, y, dir, no_steps):
 
     # Store and return the new state with the moved tiles
     state[(new_x, new_y)] = "{} W".format(new_n)
-    return new_state
+    return (new_state, new_x, new_y)
 
 # Boom function
 # Deletes the exploded pieces from board_dict
