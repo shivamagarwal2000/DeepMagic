@@ -56,7 +56,7 @@ def main():
 
 
 # takes the state and coordinate of the moving tile, direction of movement, and the no of steps
-# return the state after update
+# return the new deep copy of state, new x and new y coordinates after update
 # also keep in mind the stacking part
 # Warning - some moves might be invalid so return some flag value like None
 def move(state, n, x, y, dir, no_steps):
@@ -152,19 +152,20 @@ def heuristic(state):
             q = mpq[2]
             total_dis += (abs(x - p) + abs(y - q))
 
-    return total_dis * white_freq
+    return total_dis
 
 
+# class holds all the variables needed to define a unique move
 class Move():
 
-    def __init__(self, n, x_a, y_a, x_b, y_b, ):
+    def __init__(self, n, x_a, y_a, x_b, y_b):
         self.n = n
         self.x_a = x_a
         self.x_b = x_b
         self.y_a = y_a
         self.y_b = y_b
 
-
+# class holds all the variables needed to define a unique boom
 class Boom():
 
     def __init__(self, x, y):
@@ -173,6 +174,7 @@ class Boom():
 
 
 # a node class that holds the current state, parent state, f, g, h values
+# it also stores the action which tells us how the state was achieved from the last one
 class Node():
     """A node class for A* Pathfinding"""
 
@@ -243,25 +245,23 @@ def a_star_search(state):
             n = nxy[0]
             x = nxy[1]
             y = nxy[2]
-
-            # can move 1 to n steps in a stack of n pieces so running the loop accordingly
             for i in list(range(1, n + 1)):
-                for s in dirs:
-                    temp = move(current_node.state, x, y, s, i)
-                    # if the move was invalid, no need to add it and go to next cycle
-                    if temp is None:
-                        continue
-                    temp_act = Move()
-                    new_node = Node(current_node, temp, )
-                    children.append(new_node)
+                for pieces in list(range(1, n + 1)):
+                    for s in dirs:
+                        (temp_state, new_x, new_y) = move(current_node.state, pieces, x, y, s, i)
+                        if temp_state is None:
+                            continue
+                        temp_act = Move(pieces, x, y, new_x, new_y)
+                        new_node = Node(current_node, temp_state, temp_act)
+                        children.append(new_node)
 
         # Generating children by blasting
         for nxy in current_node.state["white"]:
             x = nxy[1]
             y = nxy[2]
             temp = boom(current_node.state, x, y)
-            new_node = Node(current_node, temp)
-            new_node.action = 'Boom'
+            temp_act = Boom(x, y)
+            new_node = Node(current_node, temp, temp_act)
             children.append(new_node)
 
         # Loop through children
