@@ -96,13 +96,32 @@ def heuristic(state):
     return total_dis * white_freq
 
 
+
+class Move():
+
+    def __init__(self, n, x_a, y_a, x_b, y_b, ):
+        self.n = n
+        self.x_a = x_a
+        self.x_b = x_b
+        self.y_a = y_a
+        self.y_b = y_b
+
+
+class Boom():
+
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+
 # a node class that holds the current state, parent state, f, g, h values
 class Node():
     """A node class for A* Pathfinding"""
 
-    def __init__(self, parent=None, state=None):
+    def __init__(self, parent=None, state=None, action=None):
         self.parent = parent
         self.state = state
+        self.action = action
 
         self.g = 0
         self.h = 0
@@ -115,7 +134,7 @@ class Node():
 
 def a_star_search(state):
     # initialise the starting node
-    start_node = Node(None, state)
+    start_node = Node(None, state, None)
     start_node.g = 0
     start_node.h = heuristic(state)
     start_node.f = start_node.h
@@ -150,9 +169,9 @@ def a_star_search(state):
                 path = []
                 current = current_node
                 while current is not None:
-                    path.append(current.state)
+                    path.append(current.action)
                     current = current.parent
-                return path[::-1]  # Return reversed path of states
+                return path[::-1]  # Return reversed path of actions either move or boom
 
             else:
                 break
@@ -174,7 +193,8 @@ def a_star_search(state):
                     # if the move was invalid, no need to add it and go to next cycle
                     if temp is None:
                         continue
-                    new_node = Node(current_node, temp)
+                    temp_act = Move()
+                    new_node = Node(current_node, temp, )
                     children.append(new_node)
 
         # Generating children by blasting
@@ -183,6 +203,7 @@ def a_star_search(state):
             y = nxy[2]
             temp = boom(current_node.state, x, y)
             new_node = Node(current_node, temp)
+            new_node.action = 'Boom'
             children.append(new_node)
 
         # Loop through children
