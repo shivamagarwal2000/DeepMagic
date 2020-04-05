@@ -23,11 +23,12 @@ def main():
     # Print the actions
 
     for action in path:
-        if action.name == "move":
-            print_move(action.n, action.x_a, action.y_a, action.x_b, action.y_b)
+        if action != None:
+            if action.name == "Move":
+                util.print_move(action.n, action.x_a, action.y_a, action.x_b, action.y_b)
 
-        else: 
-            print_boom(action.x, action.y)
+            else: 
+                util.print_boom(action.x, action.y)
                 
 
 # Store function
@@ -79,7 +80,7 @@ def move(state, n, x, y, dir, no_steps):
         new_x -= no_steps
 
     if new_x not in range(8) or new_y not in range(8):
-        return None
+        return (None, None, None)
 
     source_tile = find_tile(new_state["white"], x, y)
     # Remove the n pieces from the original tile 
@@ -101,7 +102,7 @@ def move(state, n, x, y, dir, no_steps):
     # If there are already black pieces on the destination tile
     check_black = find_tile(new_state["black"], new_x, new_y)
     if check_black != False:
-        return None
+        return (None, None, None)
 
     # If there are already white pieces on the destination tile
     if dest_tile != False:
@@ -167,11 +168,11 @@ def boom(state, x, y):
 # state is a dictionary of white/black as keys and list of coordinates as values
 def heuristic(state):
     total_dis = 0
-    white_freq = 0
+    #white_freq = 0
     for nxy in state["white"]:
         x = nxy[1]
         y = nxy[2]
-        white_freq = len(nxy)
+        #white_freq = len(nxy)
         for mpq in state["black"]:
             p = mpq[1]
             q = mpq[2]
@@ -251,17 +252,15 @@ def a_star_search(state):
         closed_list.append(current_node)
 
         # if the current node has no black piece, it is a goal node hence return
-        for nxy in current_node.state["black"]:
-            if len(nxy) == 0:
-                path = []
-                current = current_node
-                while current is not None:
-                    path.append(current.action)
-                    current = current.parent
-                return path[::-1]  # Return reversed path of actions either move or boom
+        if len(current_node.state["black"]) == 0:            
+            path = []
+            current = current_node
+            while current is not None:
+                path.append(current.action)
+                current = current.parent
+            return path[::-1]  # Return reversed path of actions either move or boom
 
-            else:
-                break
+        
 
         # Generate children, if goal not reached and further traversal is needed
         children = []
@@ -272,8 +271,8 @@ def a_star_search(state):
             n = nxy[0]
             x = nxy[1]
             y = nxy[2]
-            for i in list(range(1, n + 1)):
-                for pieces in list(range(1, n + 1)):
+            for i in range(1, n + 1):
+                for pieces in range(1, n + 1):
                     for s in dirs:
                         (temp_state, new_x, new_y) = move(current_node.state, pieces, x, y, s, i)
                         if temp_state is None:
@@ -308,16 +307,17 @@ def a_star_search(state):
             if flag == 1:
                 continue
 
-            # Child is already in the open list
-            for open_node in open_list:
-                # check if the new path to children is worst or equal
-                # than one already in the open_list (by measuring g)
-                if child == open_node and child.g >= open_node.g:
-                    break
-                else:
-                    # Add the child to the open list
-                    open_list.append(child)
-
-
+            # # Child is already in the open list
+            # for open_node in open_list:
+            #     # check if the new path to children is worst or equal
+            #     # than one already in the open_list (by measuring g)
+            #     if child == open_node and child.g >= open_node.g:
+            #         break
+            #     else:
+            #         # Add the child to the open list
+            #         open_list.append(child)
+            open_list.append(child)
+            
+                    
 if __name__ == '__main__':
     main()
