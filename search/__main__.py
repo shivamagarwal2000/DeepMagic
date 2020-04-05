@@ -1,5 +1,6 @@
 import sys
 import json
+import copy
 import search.util as util
 
 
@@ -22,13 +23,12 @@ def main():
     # Print the actions
 
     for action in path:
-        if action[1] == "move":
-            print_move(action[2],action[3],action[4],action[5],action[6])
+        if action.name == "move":
+            print_move(action.n, action.x_a, action.y_a, action.x_b, action.y_b)
 
         else: 
-            print_boom(action[2],action[3],action[4])
-            
-    util.print_board(state)
+            print_boom(action.x, action.y)
+                
 
 # Store function
 def store(data):
@@ -62,7 +62,7 @@ def store(data):
 def move(state, n, x, y, dir, no_steps):
 
     # Check if move will still be on the board
-    new_state = state.deepcopy()
+    new_state = copy.deepcopy(state)
     new_x = x
     new_y = y
 
@@ -78,56 +78,77 @@ def move(state, n, x, y, dir, no_steps):
     else:
         new_x -= no_steps
 
-    if new_x not in range(8) and new_y not in range(8):
+    if new_x not in range(8) or new_y not in range(8):
         return None
 
+    source_tile = find_tile(new_state["white"], x, y)
     # Remove the n pieces from the original tile 
-    old_n = int(new_state[(x,y)][0])
-
+    old_n = source_tile[0]
+    new_state["white"].remove([old_n, x, y])
     # If moving part of a stack
-    if old_n > n:
+    if old_n > n:        
         old_n -= n
-        new_state[(x,y)] = "{} W".format(old_n)
+        new_state["white"].append([old_n, x, y])
 
     # If moving whole stack
-    else:
-        del new_state[(x,y)]
-
+    
+    
     # Place n pieces at destination 
     new_n = n
+    dest_tile = find_tile(new_state["white"], new_x, new_y)
 
-    # If there are already pieces on the destination tile
-    if (new_x, new_y) in new_state:
+
+    # If there are already black pieces on the destination tile
+    check_black = find_tile(new_state["black"], new_x, new_y)
+    if check_black != False:
+        return None
+
+    # If there are already white pieces on the destination tile
+    if dest_tile != False:
 
         # If piece at destination is white then just make/add to stack
-        c = new_state[(new_x, new_y)][2]
+        dest_n = dest_tile[0]
+        new_state["white"].remove([new_n, new_x, new_y])
+        new_n += dest_n
 
-        if c == "W":
-            new_n += int(new_state[(new_x, new_y)][0])
-
-        # If piece at destination is black then is an invalid move
-        else:
-            return None
+    
 
     # Store and return the new state with the moved tiles
-    state[(new_x, new_y)] = "{} W".format(new_n)
+    new_state["white"].append([new_n, new_x, new_y])
     return (new_state, new_x, new_y)
+
+def find_tile(pieces, x, y):
+
+    found = False
+    
+    for tile in pieces:
+        if tile[1] == x and tile[2] == y:
+            found = tile
+    return found
 
 # Boom function
 # Deletes the exploded pieces from board_dict
 # takes a state and the location of the blast and returns the updated state
 def boom(state, x, y):
 
-    new_state = state.copy()
+    new_state = copy.deepcopy(state)
     
     # Remove all pieces at location
-    if (x,y) in new_state:
-        del new_state[(x,y)]
+    tile = []
+    check_white = find_tile(new_state["white"], x, y)
+    check_black = find_tile(new_state["black"], x, y)
+    
+    if check_white != False:
+        new_state["white"].remove(check_white)
+    elif check_black != False:
+        new_state["black"].remove(check_black)
 
     # Check for surrounding tiles if any other pieces caught in explosion
     for surrounding_x in range(x-1, x+2):
         for surrounding_y in range(y-1,y+2):
-            if (surrounding_x, surrounding_y) in new_state:
+            check_white_surrounding = find_tile(new_state["white"], surrounding_x, surrounding_y)
+            check_black_surrounding = find_tile(new_state["black"], surrounding_x, surrounding_y)
+            if (check_black_surrounding or check_white_surrounding):
                 new_state = boom(new_state, surrounding_x,surrounding_y)
     
     return new_state 
@@ -168,6 +189,7 @@ class Move():
         self.x_b = x_b
         self.y_a = y_a
         self.y_b = y_b
+        self.name = "Move"
 
 # class holds all the variables needed to define a unique boom
 class Boom():
@@ -175,6 +197,7 @@ class Boom():
     def __init__(self, x, y):
         self.x = x
         self.y = y
+        self.name = "Boom"
 
 
 # a node class that holds the current state, parent state, f, g, h values
