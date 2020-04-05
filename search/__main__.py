@@ -62,7 +62,7 @@ def store(data):
 def move(state, n, x, y, dir, no_steps):
 
     # Check if move will still be on the board
-    new_state = state.copy()
+    new_state = state.deepcopy()
     new_x = x
     new_y = y
 
