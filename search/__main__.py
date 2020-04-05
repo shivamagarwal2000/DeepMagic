@@ -8,51 +8,23 @@ def main():
     with open(sys.argv[1]) as file:
         data = json.load(file)
 
-        # Store white and black pieces in the form of dictionary
-        state = {}
-        state = store(data)
-
     file.close()
+    expendibots(data)
+
+
+def expendibots(data):
 
     # Use A* algorithm to find optimal path
     # Have it return a path (list of tuple with (action_type, n, source_x, source_y, dest_x, dest_y))
-
-    path = []
-    path = a_star_search(data) 
-
     # Print the actions
-
-    for action in path:
+    for action in a_star_search(data):
         if action != None:
             if action.name == "Move":
                 util.print_move(action.n, action.x_a, action.y_a, action.x_b, action.y_b)
 
             else: 
                 util.print_boom(action.x, action.y)
-                
-
-# Store function
-def store(data):
     
-    # For every piece in json file, we append into empty board_dict
-    # board_dict[(x,y)] = "n c" where n is number of pieces (maybe in stack) and c is colour (B or W) 
-    state = {}
-
-    for nxy in data["white"]:
-        n = nxy[0]
-        x = nxy[1]
-        y = nxy[2]
-        state[(x,y)] = "{} W".format(n)
-
-    for nxy in data["black"]:
-        n = nxy[0]
-        x = nxy[1]
-        y = nxy[2]
-        state[(x,y)] = "{} B".format(n)
-
-    return state
-    
-
 
 # Move function
 # takes the state and coordinate of the moving tile, direction of movement, and the no of steps
@@ -79,53 +51,38 @@ def move(state, n, x, y, dir, no_steps):
     else:
         new_x -= no_steps
 
-    if new_x not in range(8) or new_y not in range(8):
+    # Invalid move if there are already black pieces on the destination tile or if the move goes past the borders
+    
+    dest_tile = find_tile(new_state, new_x, new_y)
+
+    found_black = dest_tile and dest_tile[1] == "black"
+    
+    not_in_range = not (new_x in range(8) and new_y in range(8))
+
+    if found_black or not_in_range:
         return (None, None, None)
 
-    source_tile = find_tile(new_state["white"], x, y)
     # Remove the n pieces from the original tile 
-    old_n = source_tile[0]
+    source_tile = find_tile(new_state, x, y)
+    old_n = source_tile[0][0]
     new_state["white"].remove([old_n, x, y])
-    # If moving part of a stack
+
+    # If moving only part of a stack
     if old_n > n:        
         old_n -= n
         new_state["white"].append([old_n, x, y])
 
-    # If moving whole stack
-    
-    
     # Place n pieces at destination 
     new_n = n
-    dest_tile = find_tile(new_state["white"], new_x, new_y)
 
-
-    # If there are already black pieces on the destination tile
-    check_black = find_tile(new_state["black"], new_x, new_y)
-    if check_black != False:
-        return (None, None, None)
-
-    # If there are already white pieces on the destination tile
-    if dest_tile != False:
-
-        # If piece at destination is white then just make/add to stack
-        dest_n = dest_tile[0]
+    # If there are already white pieces on the destination tile then stack
+    if dest_tile:
+        dest_n = dest_tile[0][0]
         new_state["white"].remove([new_n, new_x, new_y])
         new_n += dest_n
 
-    
-
-    # Store and return the new state with the moved tiles
     new_state["white"].append([new_n, new_x, new_y])
     return (new_state, new_x, new_y)
-
-def find_tile(pieces, x, y):
-
-    found = False
-    
-    for tile in pieces:
-        if tile[1] == x and tile[2] == y:
-            found = tile
-    return found
 
 # Boom function
 # Deletes the exploded pieces from board_dict
@@ -136,24 +93,30 @@ def boom(state, x, y):
     
     # Remove all pieces at location
     tile = []
-    check_white = find_tile(new_state["white"], x, y)
-    check_black = find_tile(new_state["black"], x, y)
-    
-    if check_white != False:
-        new_state["white"].remove(check_white)
-    elif check_black != False:
-        new_state["black"].remove(check_black)
+    found = find_tile(new_state, x, y)
+    if found != False:
+        new_state[found[1]].remove(found[0])
 
     # Check for surrounding tiles if any other pieces caught in explosion
     for surrounding_x in range(x-1, x+2):
         for surrounding_y in range(y-1,y+2):
-            check_white_surrounding = find_tile(new_state["white"], surrounding_x, surrounding_y)
-            check_black_surrounding = find_tile(new_state["black"], surrounding_x, surrounding_y)
-            if (check_black_surrounding or check_white_surrounding):
+
+            if find_tile(new_state, surrounding_x, surrounding_y):
                 new_state = boom(new_state, surrounding_x,surrounding_y)
     
     return new_state 
 
+def find_tile(state, x, y):
+    
+    for tile in state["white"]:
+        if tile[1] == x and tile[2] == y:
+            return (tile, "white")
+
+    for tile in state["black"]:
+        if tile[1] == x and tile[2] == y:
+            return (tile, "black")
+
+    return False
 
 # search the optimal tiles/tile where the white pieces/piece should move to
 # modelling the problem - States - white and black pieces along with their location
