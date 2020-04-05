@@ -164,6 +164,7 @@ class Move():
         self.x_b = x_b
         self.y_a = y_a
         self.y_b = y_b
+        self.name = "Move"
 
 # class holds all the variables needed to define a unique boom
 class Boom():
@@ -171,6 +172,7 @@ class Boom():
     def __init__(self, x, y):
         self.x = x
         self.y = y
+        self.name = "Boom"
 
 
 # a node class that holds the current state, parent state, f, g, h values
