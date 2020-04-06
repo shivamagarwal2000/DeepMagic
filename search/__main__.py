@@ -1,43 +1,42 @@
 import sys
 import json
-from typing import TextIO
-
+import copy
 import search.util as util
 
 
 def main():
     with open(sys.argv[1]) as file:
         data = json.load(file)
-        board_dict = {}
-        for nxy in data["white"]:
-            n = nxy[0]
-            x = nxy[1]
-            y = nxy[2]
-            board_dict[(x, y)] = "{} W".format(n)
-
-        for nxy in data["black"]:
-            n = nxy[0]
-            x = nxy[1]
-            y = nxy[2]
-            board_dict[(x, y)] = "{} B".format(n)
-    path = a_star_search(data)
-    # print the actions using util.py functions
-    for opt in path:
-        if opt.name == "Move":
-            util.print_move(opt.n, opt.x_a, opt.y_a, opt.x_b, opt.y_b)
-        else:
-            util.print_boom(opt.x, opt.y)
 
     file.close()
-    util.print_board(board_dict, "", False, True)
+    expendibots(data)
 
 
+def expendibots(data):
+    # Use A* algorithm to find optimal path
+    # Have it return a path (list of actions either Move or Boom)
+    # Print the actions
+    path = a_star_search(data)
+
+    for action in path:
+        if action is not None:
+            if action.name == "Move":
+                util.print_move(action.n, action.x_a, action.y_a, action.x_b, action.y_b)
+
+            else:
+                util.print_boom(action.x, action.y)
+
+
+# Move function
 # takes the state and coordinate of the moving tile, direction of movement, and the no of steps
-# return the new deep copy of state, new x and new y coordinates after update
+# return the state after update
 # also keep in mind the stacking part
 # Warning - some moves might be invalid so return some flag value like None
+
 def move(state, n, x, y, dir, no_steps):
     # Check if move will still be on the board
+    new_state = copy.deepcopy(state)
+    # print(new_state)
     new_x = x
     new_y = y
 
@@ -53,57 +52,71 @@ def move(state, n, x, y, dir, no_steps):
     else:
         new_x -= no_steps
 
-    if new_x not in range(8) and new_y not in range(8):
-        return None
+    # Invalid move if there are already black pieces on the destination tile or if the move goes past the borders
+    dest_tile = find_tile(new_state, new_x, new_y)
+    found_black = dest_tile and dest_tile[1] == "black"
+
+    not_in_range = not (new_x in range(8) and new_y in range(8))
+    if not_in_range or found_black:
+        return None, None, None
 
     # Remove the n pieces from the original tile
-    old_n = int(state[(x, y)][0])
+    source_tile = find_tile(new_state, x, y)
+    old_n = source_tile[0][0]
+    new_state["white"].remove([old_n, x, y])
 
-    # If moving less than a full stack
+    # If moving only part of a stack
     if old_n > n:
         old_n -= n
-        state[(x, y)] = "{} W".format(old_n)
-
-    # If moving full stack
-    else:
-        del state[(x, y)]
+        new_state["white"].append([old_n, x, y])
 
     # Place n pieces at destination
     new_n = n
 
-    # If there are already pieces on the destination tile
-    if (new_x, new_y) in state:
+    # If there are already white pieces on the destination tile then stack
+    if dest_tile:
+        dest_n = dest_tile[0][0]
+        new_state["white"].remove([dest_n, new_x, new_y])
+        new_n += dest_n
 
-        # If piece at destination is white then just make/add to stack
-        c = state[(new_x, new_y)][2]
-
-        if c == "W":
-            new_n += int(state[(new_x, new_y)][0])
-
-        # If piece at destination is black then is an invalid move
-        else:
-            return None
-
-    # Store and return the new state with the moved tiles
-    state[(new_x, new_y)] = "{} W".format(new_n)
-    return state
+    new_state["white"].append([new_n, new_x, new_y])
+    return new_state, new_x, new_y
 
 
 # Boom function
 # Deletes the exploded pieces from board_dict
 # takes a state and the location of the blast and returns the updated state
 def boom(state, x, y):
+    new_state = copy.deepcopy(state)
+
     # Remove all pieces at location
-    if (x, y) in state:
-        del state[(x, y)]
+    tile = []
+    found = find_tile(new_state, x, y)
+    if found:
+        new_state[found[1]].remove(found[0])
 
     # Check for surrounding tiles if any other pieces caught in explosion
+    # Added the feature of removing the surrounding tiles as well
     for surrounding_x in range(x - 1, x + 2):
         for surrounding_y in range(y - 1, y + 2):
-            if (surrounding_x, surrounding_y) in state:
-                state = boom(state, surrounding_x, surrounding_y)
 
-    return state
+            if find_tile(new_state, surrounding_x, surrounding_y):
+
+                new_state = boom(new_state, surrounding_x, surrounding_y)
+
+    return new_state
+
+
+def find_tile(state, x, y):
+    for tile in state["white"]:
+        if tile[1] == x and tile[2] == y:
+            return tile, "white"
+
+    for tile in state["black"]:
+        if tile[1] == x and tile[2] == y:
+            return tile, "black"
+
+    return False
 
 
 # search the optimal tiles/tile where the white pieces/piece should move to
@@ -119,17 +132,22 @@ def boom(state, x, y):
 # state is a dictionary of white/black as keys and list of coordinates as values
 def heuristic(state):
     total_dis = 0
-    white_freq = 0
+    white_freq = len(state["white"])
+    black_freq = len(state["black"])
     for nxy in state["white"]:
         x = nxy[1]
         y = nxy[2]
-        white_freq = len(nxy)
         for mpq in state["black"]:
             p = mpq[1]
             q = mpq[2]
             total_dis += (abs(x - p) + abs(y - q))
 
-    return total_dis
+    if black_freq == 0:
+        return 0
+    if white_freq == 0:
+        return 100000
+
+    return total_dis + white_freq - black_freq
 
 
 # class holds all the variables needed to define a unique move
@@ -190,6 +208,7 @@ def a_star_search(state):
     # loop till the end
     while len(open_list) > 0:
         # Get the current node
+        # print(len(open_list))
         current_node = open_list[0]
         current_index = 0
 
@@ -204,17 +223,16 @@ def a_star_search(state):
         closed_list.append(current_node)
 
         # if the current node has no black piece, it is a goal node hence return
-        for nxy in current_node.state["black"]:
-            if len(nxy) == 0:
-                path = []
-                current = current_node
-                while current is not None:
-                    path.append(current.action)
-                    current = current.parent
-                return path[::-1]  # Return reversed path of actions either move or boom
+        # print(len(current_node.state["black"]))
 
-            else:
-                break
+        if len(current_node.state["black"]) == 0:
+
+            path = []
+            current = current_node
+            while current is not None:
+                path.append(current.action)
+                current = current.parent
+            return path[::-1]  # Return reversed path of actions either move or boom
 
         # Generate children, if goal not reached and further traversal is needed
         children = []
@@ -225,14 +243,16 @@ def a_star_search(state):
             n = nxy[0]
             x = nxy[1]
             y = nxy[2]
-            for i in list(range(1, n + 1)):
-                for pieces in list(range(1, n + 1)):
+            for i in range(1, n + 1):
+                for pieces in range(1, n + 1):
                     for s in dirs:
                         (temp_state, new_x, new_y) = move(current_node.state, pieces, x, y, s, i)
                         if temp_state is None:
                             continue
+
                         temp_act = Move(pieces, x, y, new_x, new_y)
                         new_node = Node(current_node, temp_state, temp_act)
+                        # print(new_node.action.name)
                         children.append(new_node)
 
         # Generating children by blasting
@@ -246,30 +266,38 @@ def a_star_search(state):
 
         # Loop through children
         for child in children:
-            flag = 0
             # Child is on the closed list
+            flag_1 = 0
             for closed_child in closed_list:
                 if child == closed_child:
-                    flag = 1
+                    # print("Visited child")
+                    flag_1 = 1
                     break
-                else:
-                    # Create the f, g, and h values
-                    child.g = current_node.g + 1
-                    child.h = heuristic(child.state)
-                    child.f = child.g + child.h
 
-            if flag == 1:
+            if flag_1 == 1:
                 continue
+            else:
+                # Create the f, g, and h values
+                child.g = current_node.g + 1
+                child.h = heuristic(child.state)
+                child.f = child.g + child.h
+                # print(child.f)
 
             # Child is already in the open list
+            flag2 = 0
             for open_node in open_list:
                 # check if the new path to children is worst or equal
                 # than one already in the open_list (by measuring g)
                 if child == open_node and child.g >= open_node.g:
+                    flag2 = 1
                     break
-                else:
-                    # Add the child to the open list
-                    open_list.append(child)
+
+            if flag2 == 1:
+                continue
+            else:
+                # Add the child to the open list
+                open_list.append(child)
+
 
 
 if __name__ == '__main__':
