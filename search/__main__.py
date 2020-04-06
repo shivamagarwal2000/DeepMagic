@@ -2,15 +2,16 @@ import sys
 import json
 import copy
 import search.util as util
+import time
 
-
+start_time = time.time()
 def main():
     with open(sys.argv[1]) as file:
         data = json.load(file)
 
     file.close()
     expendibots(data)
-
+    print("--- %s seconds ---" % (time.time() - start_time))
 
 def expendibots(data):
     # Use A* algorithm to find optimal path
