@@ -148,7 +148,7 @@ def heuristic(state):
     if white_freq == 0:
         return 100000
 
-    return total_dis + white_freq - black_freq
+    return total_dis
 
 
 # class holds all the variables needed to define a unique move
