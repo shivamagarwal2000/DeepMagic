@@ -133,8 +133,8 @@ def find_tile(state, x, y):
 # state is a dictionary of white/black as keys and list of coordinates as values
 def heuristic(state):
     total_dis = 0
-    white_freq = len(state["white"])
-    black_freq = len(state["black"])
+    # white_freq = len(state["white"])
+    # black_freq = len(state["black"])
     for nxy in state["white"]:
         x = nxy[1]
         y = nxy[2]
@@ -143,10 +143,10 @@ def heuristic(state):
             q = mpq[2]
             total_dis += (abs(x - p) + abs(y - q))
 
-    if black_freq == 0:
-        return 0
-    if white_freq == 0:
-        return 100000
+    # if black_freq == 0:
+    #     return 0
+    # if white_freq == 0:
+    #     return 100000
 
     return total_dis
 
