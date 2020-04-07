@@ -407,7 +407,7 @@ def a_star_search(state):
 
                 if child == unvisited_child:
                     
-                    if child.g >= unvisited_child.g or child.h >= unvisited_child.h or child.f >= unvisited_child.f:
+                    if child.g >= unvisited_child.g or child.h >= unvisited_child.h:
                         current_worse = True
                         break
 
