@@ -31,11 +31,16 @@ def main():
 # MODELLING THE PROBLEM:
 #
 # States - Location of all the white and black pieces remaining on the board
+#
 # Data structure - Dictionary in the format of 'data' as read from the json file
-# Operators - Either moving a white piece(s) to a valid location or booming a 
+#
+# Actions - Either moving a white piece(s) to a valid location or booming the
 # white piece(s)
+#
 # Goal - 0 black pieces on the board
-# Path cost - A single action
+#
+# Path cost - A single action (move or boom)
+#
 # Algorithm used to reach the goal efficiently - A*
 
 def expendibots(data):
