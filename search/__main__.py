@@ -30,9 +30,7 @@ def main():
 #
 # MODELLING THE PROBLEM:
 #
-# States - Location of all the white and black pieces remaining on the board
-#
-# Data structure - Dictionary in the format of 'data' as read from the json file
+# States - Location of all the white and black pieces remaining on the board stored as a dictionary in the sane format as the data from the json file
 #
 # Actions - Either moving a white piece(s) to a valid location or booming the
 # white piece(s)
