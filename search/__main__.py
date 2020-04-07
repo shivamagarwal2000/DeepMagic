@@ -8,9 +8,11 @@
 # Student 2 Name: Shivam Agarwal
 # Student 2 Number: 951424
 
+
 import sys
 import json
 import copy
+import time
 import search.util as util
 
 def main():
@@ -195,14 +197,14 @@ def heuristic(state):
             
             # Add the number of moves needed to reach the black pieces
 
-            # Divibe by n to prioritise being in stacks
+            # Minus by n to prioritise being in stacks
 
             # Minus 3 to account for the fact that the minimum distance is at 
             # least 1 since we cannot place a white piece on a tile with a 
             # black piece and also that we do not need to be directly beside a 
             # black piece when booming to remove it
 
-            total_distance += (abs(x - black_x) + abs(y - black_y))/n - 3
+            total_distance += (abs(x - black_x) + abs(y - black_y)) - n - 3
 
     return total_distance
 
