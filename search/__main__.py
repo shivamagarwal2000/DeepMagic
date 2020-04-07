@@ -127,7 +127,7 @@ def boom(state, x, y):
 
     # Create a deep copy of the original state so as to not alter it
     new_state = copy.deepcopy(state)
-    
+
     # Remove all pieces at location
     tile = find_tile(new_state, x, y)    
     new_state[tile[1]].remove(tile[0])
@@ -249,7 +249,6 @@ class Boom():
 # h value - Heuristic value (explained in the heuristic function)
 
 class Node():
-    """A node class for A* Pathfinding"""
 
     def __init__(self, parent=None, state=None, action=None):
         self.parent = parent
