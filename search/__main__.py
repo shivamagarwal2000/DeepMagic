@@ -182,62 +182,29 @@ def heuristic(state):
 
     total_distance = 0
 
-    checking = copy.deepcopy(state)
-
     # Iterate through all the white pieces left on the board
-    for white in checking["white"]:
+    for white in state["white"]:
         n = white[0]
         x = white[1]
         y = white[2]
 
-        # If there is already a black piece in the surrounding, then remove it 
-        checking = remove_black_cluster(checking, x, y)
-
-        for black in checking["black"]:
+        # Iterate through black pieces left on the board
+        for black in state["black"]:
             black_x = black[1]
             black_y = black[2]
             
             # Add the number of moves needed to reach the black pieces
+
+            # Divibe by n to prioritise being in stacks
 
             # Minus 3 to account for the fact that the minimum distance is at 
             # least 1 since we cannot place a white piece on a tile with a 
             # black piece and also that we do not need to be directly beside a 
             # black piece when booming to remove it
 
-            # Minus n to prioritise being in stacks
-            total_distance += (abs(x - black_x) + abs(y - black_y)) - 2
+            total_distance += (abs(x - black_x) + abs(y - black_y))/n - 3
 
     return total_distance
-
-# ---------------------------------------------------------------------------- #
-# REMOVE_BLACK_CLUSTER FUNCTION #
-# ----------------------------- #
-#
-# Helper function that removes all the black pieces that are already next to a 
-# white piece - similar to boom
-# 
-# It takes the state and the coordinates of the piece(s) to boom as input and 
-# returns the new updated state.
-
-def remove_black_cluster(state, x, y):
-
-    # Create a deep copy of the original state so as to not alter it
-    new_state = copy.deepcopy(state)
-
-    # Remove the piece if it is a black piece
-    tile = find_tile(new_state, x, y)
-    if tile[1] == "black":    
-        new_state[tile[1]].remove(tile[0])
-
-    # Check surrounding tiles if there any other black pieces connected
-    for surrounding_x in range(x - 1, x + 2):
-        for surrounding_y in range(y - 1, y + 2):
-            tile = find_tile(new_state, surrounding_x, surrounding_y)
-            if tile and tile[1] == "black":
-                new_state = remove_black_cluster(new_state, surrounding_x, surrounding_y)
-
-    return new_state
-
 
 # ---------------------------------------------------------------------------- #
 # MOVE CLASS #
